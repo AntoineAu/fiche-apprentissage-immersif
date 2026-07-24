@@ -468,6 +468,37 @@
   }
   .tree-opt:hover{ border-color:var(--teal); color:var(--teal); }
   .tree-path{ font-family:var(--mono); font-size:.72rem; color:var(--text-faint); margin-bottom:10px;}
+  .tree-reasoning{ display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+  .tree-reasoning:empty{ margin-bottom:0; }
+  .reason-step{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .reason-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--bg); border:1px solid var(--line); border-radius:8px;
+    padding:6px 10px; font-size:.78rem; cursor:default; transition:border-color .15s;
+  }
+  .reason-chip:hover{ border-color:var(--text-faint); }
+  .reason-chip .rc-label{
+    font-family:var(--mono); font-size:.62rem; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--text-faint);
+  }
+  .reason-chip .rc-text{ color:var(--text); }
+  .rc-see{ font-family:var(--mono); font-size:.68rem; color:var(--text-faint); font-style:italic; }
+  .rc-link{
+    font-size:.78rem; text-decoration:none; border-bottom:1px dashed currentColor; cursor:pointer;
+  }
+  .rc-link:hover{ filter:brightness(1.3); }
+  .reason-chip.amber{ border-color:var(--amber-dim); }
+  .reason-chip.amber .rc-label{ color:var(--amber); }
+  .rc-link.amber{ color:var(--amber); }
+  .reason-chip.teal{ border-color:var(--teal-dim); }
+  .reason-chip.teal .rc-label{ color:var(--teal); }
+  .rc-link.teal{ color:var(--teal); }
+  .reason-chip.violet{ border-color:var(--violet-dim); }
+  .reason-chip.violet .rc-label{ color:var(--violet); }
+  .rc-link.violet{ color:var(--violet); }
+  .reason-chip.red{ border-color:var(--red-soft); opacity:.85; }
+  .reason-chip.red .rc-label{ color:var(--red-soft); }
+  .rc-link.red{ color:var(--red-soft); }
   .tree-result{ display:none; }
   .tree-result.show{ display:block; }
   .tree-result h3{ color:var(--teal); }
@@ -479,10 +510,17 @@
 
   /* ---------- CHECKLIST ---------- */
   .checklist{ display:flex; flex-direction:column; gap:10px; margin-top:20px;}
-  .chk-item{ display:flex; gap:12px; align-items:flex-start; background:var(--bg-card); border:1px solid var(--line); border-radius:10px; padding:14px 16px;}
+  .chk-item{ display:flex; gap:12px; align-items:flex-start; background:var(--bg-card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; transition:border-color .15s;}
+  .chk-item:hover{ border-color:var(--teal); }
   .chk-item input{ margin-top:4px; accent-color:var(--teal); width:16px; height:16px; flex-shrink:0;}
   .chk-item label{ font-size:.9rem; color:var(--text-dim); cursor:pointer;}
   .chk-item label b{ color:var(--text); }
+  .chk-tags{ display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; align-items:flex-start; }
+  .chk-tag{ display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; align-self:flex-start; height:20px; box-sizing:border-box; font-family:var(--mono); font-size:.62rem; text-transform:uppercase; padding:0 8px; border-radius:10px; font-weight:500; border:1px solid transparent; white-space:nowrap; line-height:1; }
+  .chk-tag.reduce{ background:#2d2412; color:#f4d39a; }
+  .chk-tag.manage{ background:#241d33; color:#cfc6f5; }
+  .chk-tag.foster{ background:#10302c; color:#a3ece1; }
+  .chk-tag.msrtag{ background:#3a1c14; color:#f5c3b0; }
 
   /* ---------- FRISE (TIMELINE) ---------- */
   .frise{ margin-top:24px; }
@@ -1237,6 +1275,7 @@
 
     <div class="tree-box">
       <div class="tree-path" id="treePath">Étape 1</div>
+      <div class="tree-reasoning" id="treeReasoning"></div>
       <div id="treeQuestions"></div>
       <div class="tree-result" id="treeResult">
         <h3 id="resultTitle"></h3>
@@ -1252,7 +1291,7 @@
   <section id="checklist">
     <div class="eyebrow">Application pratique</div>
     <h2>Checklist de conception pour un simulateur ou jumeau numérique pédagogique</h2>
-    <p class="section-intro">Les mêmes principes n'interviennent pas tous au même moment de l'expérience. Clique une étape de la frise pour voir ce qui compte à ce moment précis du parcours — coche au fil de la conception, rien n'est envoyé ni sauvegardé.</p>
+    <p class="section-intro">Les mêmes principes n'interviennent pas tous au même moment de l'expérience. Clique une étape de la frise pour voir ce qui compte à ce moment précis du parcours — coche au fil de la conception, rien n'est envoyé ni sauvegardé. Chaque item est relié aux <a href="#principes">12 principes de Mayer</a> par une étiquette colorée : <span class="chk-tag reduce">Réduire</span> (cohérence, signalisation, segmentation, contiguïté, pré-entraînement, Redondance), <span class="chk-tag manage">Gérer</span> (modalité), <span class="chk-tag foster">Favoriser</span> (multimédia, image/incarnation, personnalisation), <span class="chk-tag msrtag">Mesure</span> (instruments d'évaluation).</p>
 
     <div class="frise">
       <div class="frise-track">
@@ -1277,20 +1316,24 @@
 
       <div class="frise-panel">
         <div class="frise-stage" data-stage="0">
-          <div class="chk-item"><input type="checkbox" id="c1"><label for="c1"><b>Pré-entraînement dissocié</b> — une séquence d'onboarding aux contrôles et à l'interface, séparée du contenu pédagogique, pour absorber l'effet de nouveauté.</label></div>
+          <div class="chk-item"><input type="checkbox" id="c1"><label for="c1"><b>Pré-entraînement dissocié</b> — une séquence d'onboarding aux contrôles et à l'interface, séparée du contenu pédagogique, pour absorber l'effet de nouveauté.<div class="chk-tags"><span class="chk-tag reduce">Pré-entraînement</span><span class="chk-tag manage">Modalité</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c10"><label for="c10"><b>Définir le niveau de Bloom visé</b> — formuler l'objectif (Mémoriser, Comprendre, Appliquer, Analyser…) avant de choisir le dispositif : un objectif de mémorisation simple ne justifie pas l'immersion.<div class="chk-tags"><span class="chk-tag foster">Multimédia</span></div></label></div>
         </div>
         <div class="frise-stage" data-stage="1" style="display:none;">
-          <div class="chk-item"><input type="checkbox" id="c4"><label for="c4"><b>Cohérence sensorielle</b> — éliminer les détails graphiques/sonores séduisants mais non pertinents pour l'objectif pédagogique (le premier réflexe en RV est souvent d'en ajouter).</label></div>
-          <div class="chk-item"><input type="checkbox" id="c2"><label for="c2"><b>Signalisation active</b> — repères visuels/sonores dans l'espace 3D pour orienter l'attention, faute de quoi le champ de vision libre dilue l'attention.</label></div>
+          <div class="chk-item"><input type="checkbox" id="c4"><label for="c4"><b>Cohérence sensorielle</b> — éliminer les détails graphiques/sonores séduisants mais non pertinents pour l'objectif pédagogique (le premier réflexe en RV est souvent d'en ajouter).<div class="chk-tags"><span class="chk-tag reduce">Cohérence</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c2"><label for="c2"><b>Signalisation active</b> — repères visuels/sonores dans l'espace 3D pour orienter l'attention, faute de quoi le champ de vision libre dilue l'attention.<div class="chk-tags"><span class="chk-tag reduce">Signalisation</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c11"><label for="c11"><b>Interface diégétique en priorité</b> — intégrer les indications dans le monde (panneaux, objets, sons spatialisés) plutôt qu'en overlay 2D flottant, qui casse la cohérence spatiale.<div class="chk-tags"><span class="chk-tag reduce">Cohérence</span></div></label></div>
         </div>
         <div class="frise-stage" data-stage="2" style="display:none;">
-          <div class="chk-item"><input type="checkbox" id="c3"><label for="c3"><b>Segmentation contrôlée</b> — des étapes courtes avec reprise en main possible, plutôt qu'une scène continue ininterrompue.</label></div>
-          <div class="chk-item"><input type="checkbox" id="c5"><label for="c5"><b>Modalité vocale</b> — préférer la narration orale à des panneaux de texte flottants pour ne pas saturer le canal visuel déjà sollicité par l'environnement 3D.</label></div>
-          <div class="chk-item"><input type="checkbox" id="c6"><label for="c6"><b>Agentivité finalisée</b> — vérifier que le contrôle donné à l'apprenant (déplacement, manipulation, avatar) sert directement l'objectif d'apprentissage, pas seulement l'engagement.</label></div>
+          <div class="chk-item"><input type="checkbox" id="c3"><label for="c3"><b>Segmentation contrôlée</b> — des étapes courtes avec reprise en main possible, plutôt qu'une scène continue ininterrompue.<div class="chk-tags"><span class="chk-tag reduce">Segmentation</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c5"><label for="c5"><b>Modalité vocale</b> — préférer la narration orale à des panneaux de texte flottants pour ne pas saturer le canal visuel déjà sollicité par l'environnement 3D.<div class="chk-tags"><span class="chk-tag manage">Modalité</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c6"><label for="c6"><b>Agentivité finalisée</b> — vérifier que le contrôle donné à l'apprenant (déplacement, manipulation, avatar) sert directement l'objectif d'apprentissage, pas seulement l'engagement.<div class="chk-tags"><span class="chk-tag foster">Image / incarnation</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c12"><label for="c12"><b>Contiguïté spatiale et temporelle</b> — placer le texte près de l'élément 3D qu'il décrit et synchroniser narration et action, pour éviter la recherche visuelle coûteuse.<div class="chk-tags"><span class="chk-tag reduce">Contiguïté</span></div></label></div>
         </div>
         <div class="frise-stage" data-stage="3" style="display:none;">
-          <div class="chk-item"><input type="checkbox" id="c7"><label for="c7"><b>Mesure de la charge</b> — intégrer une mesure subjective de charge (type NASA-TLX) en complément d'indicateurs de performance objectifs propres au domaine, pour distinguer motivation et apprentissage réel.</label></div>
-          <div class="chk-item"><input type="checkbox" id="c9"><label for="c9"><b>Perception de l'usabilité</b> — compléter par un questionnaire de qualité perçue (AttrakDiff pour les dimensions pragmatique/hédonique, SUS pour l'utilisabilité globale), afin de distinguer un problème d'apprentissage d'un problème d'expérience utilisateur.</label></div>
+          <div class="chk-item"><input type="checkbox" id="c7"><label for="c7"><b>Mesure de la charge</b> — intégrer une mesure subjective de charge (type NASA-TLX) en complément d'indicateurs de performance objectifs propres au domaine, pour distinguer motivation et apprentissage réel.<div class="chk-tags"><span class="chk-tag msrtag">Mesure</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c9"><label for="c9"><b>Perception de l'usabilité</b> — compléter par un questionnaire de qualité perçue (AttrakDiff pour les dimensions pragmatique/hédonique, SUS pour l'utilisabilité globale), afin de distinguer un problème d'apprentissage d'un problème d'expérience utilisateur.<div class="chk-tags"><span class="chk-tag msrtag">Mesure</span></div></label></div>
+          <div class="chk-item"><input type="checkbox" id="c13"><label for="c13"><b>Analyse des biais de compétence</b> — comparer l'auto-évaluation de l'apprentissage (sentiment de fluidité) aux mesures objectives pour ne pas confondre présence et acquisition réelle.<div class="chk-tags"><span class="chk-tag msrtag">Mesure</span><span class="chk-tag reduce">Redondance</span></div></label></div>
         </div>
       </div>
     </div>
@@ -1785,6 +1828,7 @@
   const tree = {
     start: {
       q: "Quel est l'objectif d'apprentissage principal ?",
+      theory: { label: "Bloom", text: "objectif pédagogique", href: "#bloom" },
       opts: [
         { label: "Comprendre un concept abstrait / déclaratif", next: "concept" },
         { label: "Exécuter une procédure ou un geste", next: "procedure" },
@@ -1794,6 +1838,7 @@
     },
     concept: {
       q: "Le contenu est-il déjà complexe en soi (beaucoup d'éléments en interaction) ?",
+      theory: { label: "Charge", text: "charge intrinsèque", href: "#charge" },
       opts: [
         { label: "Oui, très complexe", next: "R_2D_complex" },
         { label: "Non, relativement simple", next: "R_2D_simple" }
@@ -1801,6 +1846,7 @@
     },
     procedure: {
       q: "Le geste implique-t-il l'espace, le corps ou des objets manipulables ?",
+      theory: { label: "CAMIL", text: "agentivité & incarnation", href: "#camil" },
       opts: [
         { label: "Oui, fortement", next: "R_VR_proc" },
         { label: "Non, surtout séquentiel/mental", next: "R_2D_proc" }
@@ -1808,6 +1854,7 @@
     },
     spatial: {
       q: "Le transfert vers un contexte réel 3D est-il un objectif explicite ?",
+      theory: { label: "Cognition", text: "transfert spatial", href: "#cognition-immersion" },
       opts: [
         { label: "Oui", next: "R_VR_spatial" },
         { label: "Pas vraiment", next: "R_2D_spatial" }
@@ -1815,6 +1862,7 @@
     },
     affect: {
       q: "Mesures-tu l'apprentissage factuel en plus de la motivation ?",
+      theory: { label: "Biais", text: "illusion de compétence", href: "#biais" },
       opts: [
         { label: "Oui, les deux sont mesurés séparément", next: "R_VR_affect" },
         { label: "Non, seulement l'engagement", next: "R_caution_affect" }
@@ -1834,6 +1882,29 @@
   };
 
   let history = [];
+  let chosenLabels = []; // labels choisis à chaque étape, pour le résumé
+  const reasonBox = document.getElementById('treeReasoning');
+  function renderReasoning(){
+    if (!history.length && !chosenLabels.length) { reasonBox.innerHTML = ''; return; }
+    let html = '';
+    history.forEach((key, i) => {
+      const node = tree[key];
+      if (!node) return;
+      const colorClass = i === 0 ? 'amber' : (i === 1 ? 'teal' : 'violet');
+      // Une ligne par étape : chip "Étape x : choix" + "voir" + lien vers la théorie (hors du bouton)
+      let line = `<div class="reason-step">`;
+      line += `<span class="reason-chip ${colorClass}"><span class="rc-label">Étape ${i+1}</span><span class="rc-text">${chosenLabels[i] || ''}</span></span>`;
+      line += `<span class="rc-see">voir</span>`;
+      if (node.theory){
+        line += node.theory.href
+          ? `<a class="rc-link ${colorClass}" href="${node.theory.href}" title="Voir la théorie : ${node.theory.label}">${node.theory.label} · ${node.theory.text}</a>`
+          : `<span class="rc-text">${node.theory.label} · ${node.theory.text}</span>`;
+      }
+      line += `</div>`;
+      html += line;
+    });
+    reasonBox.innerHTML = html;
+  }
   function maxDepth(key){
     const node = tree[key];
     if (!node) return 1;
@@ -1849,6 +1920,7 @@
     resultBox.classList.remove('show');
     document.getElementById('treePath').textContent = `Étape ${history.length + 1} / ${maxDepth('start')}`;
     prevBtn.style.display = history.length ? 'inline-block' : 'none';
+    renderReasoning();
 
     if (node){
       qWrap.style.display = 'block';
@@ -1858,6 +1930,7 @@
         const choose = () => {
           const opt = node.opts[parseInt(el.dataset.i,10)];
           history.push(nodeKey);
+          chosenLabels.push(opt.label);
           if (results[opt.next]){
             qWrap.style.display = 'none';
             showResult(opt.next);
@@ -1877,16 +1950,20 @@
     document.getElementById('treeResult').classList.add('show');
     document.getElementById('treePath').textContent = 'Résultat';
     document.getElementById('treePrev').style.display = history.length ? 'inline-block' : 'none';
+    renderReasoning();
   }
   function goPrev(){
     if (!history.length) return;
     const prev = history.pop();
+    chosenLabels.pop();
     document.getElementById('treeResult').classList.remove('show');
     document.getElementById('treeQuestions').style.display = 'block';
     renderTree(prev);
   }
   function resetTree(){
     history = [];
+    chosenLabels = [];
+    reasonBox.innerHTML = '';
     document.getElementById('treeQuestions').style.display = 'block';
     renderTree('start');
   }
