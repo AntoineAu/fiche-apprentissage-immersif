@@ -4,7 +4,7 @@ Fiche de synthèse interactive reliant la **CTML** (Mayer), la **charge cognitiv
 (intrinsèque / extrinsèque / germane) et le modèle **CAMIL** (Makransky), jusqu'à la
 tension centrale *présence contre charge* et aux biais qui la masquent.
 
-➡️ **Version en ligne :** https://antuan7556.github.io/fiche-apprentissage-immersif/
+➡️ **Version en ligne :** https://antoineau.github.io/fiche-apprentissage-immersif/
 
 ## Contenu
 - Les 3 hypothèses de la CTML (cartes dépliables : mécanisme + exemple, source, liens vers les principes).
